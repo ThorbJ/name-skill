@@ -1,5 +1,7 @@
 # name-skill
 
+English | [中文](README.zh-CN.md)
+
 A Claude Code skill that helps you name your product and checks domain availability — all through natural conversation.
 
 ## What it does

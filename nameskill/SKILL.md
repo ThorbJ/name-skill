@@ -1,180 +1,180 @@
 ---
 name: nameskill
-description: 帮助用户为产品起名字，通过对话收集需求后生成名字并检查域名可用性。当用户说"帮我起个名字"、"给产品命名"、"想给项目取名"、"帮我想个域名"、"名字推荐"等时触发。也适用于"我想做一个XX产品，帮我起名"这类直接描述产品的请求。
+description: Helps users name their products through guided conversation, then generates candidates and checks domain availability. Triggers when users say things like "help me name my product", "name my project", "suggest a domain name", "I need a name for...", or describe a product and ask for naming help. Also works with Chinese triggers like "帮我起个名字", "给产品命名", "帮我想个域名".
 ---
 
-# NameSkill — 产品命名助手
+# NameSkill — Product Naming Assistant
 
-帮用户起一个好名字，并验证域名是否可注册。
+Help users find the perfect product name and verify domain availability.
 
-## 核心流程
+## Core Flow
 
 ```
-对话收集需求 → 生成候选名字 → 域名可用性查询 → 输出推荐表格 → 迭代优化
+Gather requirements → Generate candidates → Check domains → Output table → Iterate
 ```
 
 ---
 
-## 第一阶段：对话收集需求
+## Phase 1: Gather Requirements
 
-通过多轮对话收集信息。**每轮只问 1-2 个问题**，不要一次性抛出所有问题。
+Collect information through multi-turn conversation. **Ask only 1-2 questions per turn** — don't dump all questions at once.
 
-如果用户在初始请求中已经提供了部分信息，跳过对应的问题。
+If the user already provided some information in their initial request, skip those questions.
 
-### 对话轮次
+### Conversation Rounds
 
-**轮次 1 — 产品描述**（如果用户未在初始请求中说明）
+**Round 1 — Product description** (skip if already provided)
 
-问：
-> 能简单描述一下你的产品吗？它是做什么的？目标用户是谁？
+Ask:
+> Can you describe your product? What does it do, and who is it for?
 
-等待用户回答后进入下一轮。
+Wait for the user's response before proceeding.
 
-**轮次 2 — 名字风格偏好**
+**Round 2 — Name style preference**
 
-问：
-> 你对名字的风格有偏好吗？
-> - **真实单词 / 单词组合**（如 Facebook、YouTube、Dropbox）
-> - **造词 / 变体拼写**（如 Spotify、Figma、Vercel）
-> - **缩写型**（如 IBM、AWS）
-> - **无特别偏好**，都可以试试
+Ask:
+> Do you have a style preference for the name?
+> - **Real words / word combinations** (e.g., Facebook, YouTube, Dropbox)
+> - **Coined words / spelling variants** (e.g., Spotify, Figma, Vercel)
+> - **Abbreviations** (e.g., IBM, AWS)
+> - **No preference** — let's try a mix
 
-等待用户回答后进入下一轮。
+Wait for the user's response before proceeding.
 
-**轮次 3 — 名字长度和语言**
+**Round 3 — Length and language**
 
-问：
-> 两个小问题：
-> 1. 名字长度有要求吗？（默认不超过 12 个字符）
-> 2. 语言要求？纯英文、中英结合、还是都可以？
+Ask:
+> Two quick questions:
+> 1. Any length requirements? (default: 12 characters or less)
+> 2. Language? English only, bilingual, or no restriction?
 
-等待用户回答后进入下一轮。
+Wait for the user's response before proceeding.
 
-**轮次 4 — 域名要求**
+**Round 4 — Domain requirements**
 
-问：
-> 关于域名：
-> 1. 域名后缀有要求吗？必须 .com？还是 .io / .ai / .co 也可以？
-> 2. 是否必须是当前可注册的域名？（如果是，我会过滤掉已被注册的）
+Ask:
+> About domains:
+> 1. Any TLD preference? Must be .com? Or .io / .ai / .co are OK too?
+> 2. Must the domain be currently available? (If yes, I'll filter out taken ones)
 
-等待用户回答后进入下一轮。
+Wait for the user's response before proceeding.
 
-**轮次 5 — 其他限制**（可选，仅在有必要时询问）
+**Round 5 — Other constraints** (optional, only ask when relevant)
 
-问：
-> 有没有需要避开的词？比如行业敏感词、竞品名称、或者个人禁忌？
+Ask:
+> Any words to avoid? Industry-sensitive terms, competitor names, or personal preferences?
 
-### 快速通道
+### Fast Track
 
-如果用户一次性提供了大量明确信息（如"纯英文、不超过10个字符、必须.com可注册"），直接跳过已回答的问题，确认一下关键需求后立即进入生成阶段。
-
----
-
-## 第二阶段：生成候选名字
-
-收集完需求后，一次性生成 **8-12 个候选名字**。
-
-### 生成策略
-
-- 覆盖多种风格（即使用户有偏好，也可以给 1-2 个其他风格的惊喜选项）
-- 确保符合用户给出的长度和语言限制
-
-### 命名质量检查清单
-
-每个候选名字都应该过一遍这个清单：
-
-- **易读性**：第一次看到就能读出来，不需要猜发音
-- **易记性**：双音节或三音节最佳（如 Stripe、Notion、Figma）；爆破音（b/d/k/p/t）开头更有记忆点
-- **易拼性**：别人听到后能正确拼出来，避免容易混淆的拼写（如 -ight / -ite）
-- **搜索友好**：独特造词比通用词更容易被搜到（"Vercel" 比 "Speed" 好）
-- **国际化**：非英语母语者也能读，避免在常见语言中有负面谐音
-- **视觉感**：字形是否好看、适合做 logo（字母组合的视觉平衡）
-- **品牌安全**：不与知名品牌撞名或过于相似
-
-### 生成后
-
-立即进入域名查询阶段，**不要先展示名字再查域名**。一次性完成查询后统一输出。
+If the user provides detailed requirements upfront (e.g., "English only, under 10 characters, must have .com available"), skip answered questions, confirm key requirements, and jump straight to generation.
 
 ---
 
-## 第三阶段：域名可用性查询
+## Phase 2: Generate Candidate Names
 
-对每个候选名字，查询用户要求的域名后缀（默认查 .com）。
+After gathering requirements, generate **8-12 candidate names** at once.
 
-### 查询方法
+### Generation Strategy
 
-脚本位于 skill 目录下 `scripts/check_domain.py`，支持批量查询：
+- Cover multiple styles (even if the user has a preference, include 1-2 surprise options in other styles)
+- Respect the user's length and language constraints
+
+### Name Quality Checklist
+
+Run every candidate through this checklist:
+
+- **Pronounceable**: Can be read aloud on first sight without guessing
+- **Memorable**: Two or three syllables work best (e.g., Stripe, Notion, Figma); plosive sounds (b/d/k/p/t) at the start are stickier
+- **Spellable**: Someone hearing it can type it correctly; avoid confusing spellings (-ight / -ite)
+- **Search-friendly**: Unique coined words rank better than generic terms ("Vercel" beats "Speed")
+- **International**: Readable by non-native English speakers; no negative homophones in common languages
+- **Visual appeal**: Letterforms look balanced and logo-friendly
+- **Brand-safe**: Doesn't collide with or closely resemble well-known brands
+
+### After Generation
+
+Proceed directly to domain checking — **do not show names before checking domains**. Present everything together after all checks are complete.
+
+---
+
+## Phase 3: Domain Availability Check
+
+For each candidate name, check the domain TLDs the user requested (default: .com).
+
+### How to Query
+
+The domain checker script is located at `scripts/check_domain.py` within this skill's directory. It supports batch queries:
 
 ```bash
 python <skill-dir>/scripts/check_domain.py domain1.com domain2.io domain3.ai
 ```
 
-其中 `<skill-dir>` 是本 SKILL.md 所在的目录。运行前先用 `dirname` 或 glob 定位到实际路径。
+Where `<skill-dir>` is the directory containing this SKILL.md. Use `dirname` or glob to locate the actual path before running.
 
-脚本内部自动执行 RDAP → DNS → WHOIS 三层查询链，每个域名输出一行 JSON：
+The script automatically runs a three-layer RDAP → DNS → WHOIS query chain and outputs one JSON line per domain:
 
 ```json
 {"domain": "example.com", "status": "AVAILABLE", "source": "rdap+dns"}
 ```
 
-- `status` 取值：`AVAILABLE`、`TAKEN`、`UNCERTAIN`
-- `source` 表示最终判定依据
+- `status` values: `AVAILABLE`, `TAKEN`, `UNCERTAIN`
+- `source` indicates which layer made the final determination
 
-### 结果标记映射
+### Status Mapping
 
-| status | 展示 | 含义 |
-|--------|------|------|
-| AVAILABLE | ✅ | 可注册 |
-| TAKEN | ❌ | 已被注册 |
-| UNCERTAIN | ⚠️ | 查询异常，建议手动验证 |
+| status | Display | Meaning |
+|--------|---------|---------|
+| AVAILABLE | ✅ | Can be registered |
+| TAKEN | ❌ | Already registered |
+| UNCERTAIN | ⚠️ | Query error — suggest manual verification |
 
-### 执行要求
+### Execution Rules
 
-- 一次性把所有候选域名作为参数传给脚本（脚本内部已处理速率限制）
-- 如果单个域名返回 UNCERTAIN，保留在结果中，不要丢弃
-- 查询前告知用户"正在查询域名，请稍等"
+- Pass all candidate domains as arguments in a single script call (rate limiting is handled internally)
+- Keep UNCERTAIN results in the output — don't discard them
+- Tell the user "Checking domain availability, please wait..." before running queries
 
 ---
 
-## 第四阶段：输出推荐表格
+## Phase 4: Output Results Table
 
-所有域名查完后，输出一张汇总表格：
+After all domain checks are complete, output a summary table:
 
 ```
-| 名字 | 域名 | 状态 | 命名理由 |
-|------|------|------|----------|
-| CodeVault | codevault.com | ❌ TAKEN | 代码保险箱，安全存储代码片段 |
-| CodeVault | codevault.io | ✅ AVAILABLE | 同上 |
-| Snippy | snippy.com | ❌ TAKEN | 轻快简洁，暗示代码片段 |
-| Quipcode | quipcode.com | ✅ AVAILABLE | quip（妙语）+ code，有趣好记 |
+| Name | Domain | Status | Reasoning |
+|------|--------|--------|-----------|
+| CodeVault | codevault.com | ❌ TAKEN | A secure vault for code snippets |
+| CodeVault | codevault.io | ✅ AVAILABLE | Same as above |
+| Snippy | snippy.com | ❌ TAKEN | Light and quick, implies code snippets |
+| Quipcode | quipcode.com | ✅ AVAILABLE | quip + code, fun and memorable |
 ```
 
-### 输出规则
+### Output Rules
 
-- 按状态排序：✅ AVAILABLE 排在前面
-- 如果用户要求"必须可注册"，只展示 ✅ AVAILABLE 的结果
-- 如果可注册的太少（< 3 个），主动说明并提议生成更多候选
-- 每个名字附一句简短的命名理由
-
----
-
-## 第五阶段：迭代优化
-
-表格输出后，询问用户：
-
-> 你觉得哪些方向比较好？我可以：
-> 1. 围绕你喜欢的风格生成更多候选
-> 2. 调整域名后缀要求（比如试试 .ai 或 .dev）
-> 3. 换一个完全不同的方向重新生成
-
-根据用户反馈，回到第二阶段重新生成，直到用户满意。
+- Sort by status: ✅ AVAILABLE first
+- If the user requires "must be available", show only ✅ AVAILABLE results
+- If too few are available (< 3), proactively explain and offer to generate more candidates
+- Include a one-line naming rationale for each name
 
 ---
 
-## 注意事项
+## Phase 5: Iterate
 
-- 整个流程中保持对话的自然友好，不要像表单填写
-- 域名查询需要时间，查询前告知用户"正在查询域名，请稍等"
-- 如果用户提供的需求很模糊，宁可多问一轮也不要猜测
-- 不要推荐明显与知名品牌冲突的名字
-- 如果用户问到商标问题，提醒他们做正式的商标检索（这超出本工具的能力范围）
+After presenting the table, ask the user:
+
+> Which directions do you like? I can:
+> 1. Generate more candidates around a style you liked
+> 2. Try different TLDs (e.g., .ai or .dev)
+> 3. Start over with a completely different approach
+
+Based on feedback, loop back to Phase 2 until the user is satisfied.
+
+---
+
+## Guidelines
+
+- Keep the conversation natural and friendly — don't make it feel like a form
+- Tell the user before running domain checks that it will take a moment
+- When in doubt, ask one more question rather than guessing
+- Don't recommend names that obviously conflict with well-known brands
+- If the user asks about trademarks, remind them to do a proper trademark search (beyond this tool's scope)
